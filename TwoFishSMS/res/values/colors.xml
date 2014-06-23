@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<resources>
+
+    <color name="title_background">#861d86</color>
+    <color name="subbackground">#444444</color>
+    <color name="divider">#461946</color>
+    
+    <color name="hint_edittext">#b3b3b3</color>
+    
+    <color name="button_background">#606060</color>
+
+</resources>

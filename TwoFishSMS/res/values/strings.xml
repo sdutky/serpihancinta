@@ -4,5 +4,15 @@
     <string name="app_name">TwoFishSMS</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    
+    <string name="message_title">Messages</string>
+    <string name="compose_title">New Message</string>
+    
+    <string name="compose_button">Compose</string>
+    
+    <!-- Hint -->
+    <string name="compose_recipient_hint">Enter recipient</string>
+    <string name="compose_key_hint">Enter key</string>
+    <string name="compose_message_hint">Enter message</string>
 
 </resources>

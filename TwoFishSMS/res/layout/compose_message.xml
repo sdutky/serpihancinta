@@ -1,0 +1,181 @@
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+    
+    <RelativeLayout 
+        android:id="@+id/compose_title_layout"
+	    android:layout_width="match_parent"
+	    android:layout_height="60dp"
+	    android:paddingLeft="@dimen/activity_horizontal_margin"
+	    android:paddingRight="@dimen/activity_horizontal_margin"
+		android:background="@color/title_background" >
+		
+        <edu.itb.twofishsms.view.HelveticaLightTextView
+            android:id="@+id/compose_message_title"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_centerVertical="true"
+            android:singleLine="true"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:text="@string/compose_title"/>
+
+	</RelativeLayout>
+	
+    <View 
+        android:id="@+id/compose_title_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/compose_title_layout"
+        android:background="@color/divider"/>
+    
+    <LinearLayout 
+        android:id="@+id/compose_recipient_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/compose_title_divider"
+        android:padding="10dp"
+        android:orientation="vertical"
+    	android:background="@color/subbackground">
+        
+        <LinearLayout 
+            android:layout_width="match_parent"
+        	android:layout_height="wrap_content"
+        	android:layout_marginBottom="5dp"
+        	android:orientation="horizontal">
+        	    
+            <edu.itb.twofishsms.view.HelveticaRegularTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To : "
+                android:textSize="16sp"/>
+            
+            <LinearLayout 
+                android:id="@+id/compose_recipient_selected_layout"
+                android:layout_width="match_parent"
+        		android:layout_height="wrap_content"
+        		android:orientation="vertical">
+                
+            </LinearLayout>
+        </LinearLayout>
+        
+        <edu.itb.twofishsms.view.HelveticaRegularEditText 
+	         android:id="@+id/compose_recipient_edittext"
+	         android:layout_width="match_parent"
+	         android:layout_height="match_parent"
+	         android:background="@drawable/rounded_corner"
+	         android:padding="5dp"
+	         android:singleLine="true"
+	         android:hint="@string/compose_recipient_hint"
+	         android:textColorHint="@color/hint_edittext"
+	         android:textColor="@android:color/black"
+	         android:textSize="14sp"/>
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/compose_recipient_layout"
+        android:layout_above="@+id/compose_message_layout"
+        android:layout_marginBottom="10dp"
+        android:orientation="vertical">
+    	
+        <ListView 
+	        android:id="@+id/compose_message_listview"
+	       	android:layout_width="match_parent"
+	       	android:layout_height="match_parent"
+	       	android:divider="@android:color/transparent"
+	    	android:transcriptMode="alwaysScroll"/>
+        
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:id="@+id/compose_message_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+    	android:background="@color/subbackground">
+        
+        <LinearLayout 
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.8"
+            android:padding="10dp"
+            android:orientation="vertical">
+            
+            <edu.itb.twofishsms.view.HelveticaRegularEditText 
+		         android:id="@+id/compose_key_edittext"
+		         android:layout_width="match_parent"
+		         android:layout_height="wrap_content"
+		         android:background="@drawable/rounded_corner"
+		         android:padding="5dp"
+		         android:singleLine="true"
+		         android:hint="@string/compose_key_hint"
+		         android:textColorHint="@color/hint_edittext"
+		         android:textColor="@android:color/black"
+		         android:textSize="14sp"/>
+            
+            <edu.itb.twofishsms.view.HelveticaRegularEditText 
+		         android:id="@+id/compose_message_edittext"
+		         android:layout_width="match_parent"
+		         android:layout_height="wrap_content"
+		         android:background="@drawable/rounded_corner"
+		         android:layout_marginTop="5dp"
+		         android:padding="5dp"
+		         android:lines="5"
+		         android:gravity="top|left"
+		         android:hint="@string/compose_message_hint"
+		         android:textColorHint="@color/hint_edittext"
+		         android:textColor="@android:color/black"
+		         android:maxLength="160"
+		         android:textSize="14sp"/>
+            
+        </LinearLayout>
+        
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.2"
+            android:baselineAligned="false">
+         
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="vertical">
+                
+                <ImageButton 
+			        android:id="@+id/compose_encrypt_button"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:padding="10dp"
+			        android:src="@drawable/ic_action_secure"
+			        android:background="@color/button_background"/>
+                
+                <ImageButton 
+			        android:id="@+id/compose_send_button"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:layout_marginTop="10dp"
+			        android:padding="10dp"
+			        android:src="@drawable/ic_action_send_now"
+			        android:background="@color/button_background"/>
+                
+            </LinearLayout>
+        </RelativeLayout>
+    </LinearLayout>
+    
+    <ListView 
+        android:id="@+id/compose_contact_listview"
+       	android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+       	android:layout_below="@+id/compose_recipient_layout"
+    	android:transcriptMode="disabled"
+   		android:visibility="gone"/>
+    
+</RelativeLayout>

@@ -1,27 +1,52 @@
 package edu.itb.twofishsms;
 
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import edu.itb.twofishsms.adapter.RecipientThreadAdapter;
+import edu.itb.twofishsms.constant.IntentKey;
+import edu.itb.twofishsms.provider.Contact;
+import edu.itb.twofishsms.provider.Recipient;
+import edu.itb.twofishsms.util.ContactUtil;
+import edu.itb.twofishsms.util.DatabaseUtil;
 
-public class MainActivity extends ActionBarActivity {
-
+public class MainActivity extends Activity {
+	
+	private ListView recipientThreadListView;
+	private RecipientThreadAdapter recipientThreadAdapter;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
+			// Get all contact
+			new GetContactThread().start();
+			
+			// Init view
+			init();
 		}
+	}
+	
+	public void onResume(){
+		super.onResume();
+		
+		// Update recipient thread list
+		recipientThreadAdapter.setItemList(DatabaseUtil.getRecipientThreadDatabase(getApplicationContext()));
+		recipientThreadAdapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -43,21 +68,48 @@ public class MainActivity extends ActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
-
-		public PlaceholderFragment() {
-		}
-
+	
+	public void init(){
+		// Init compose button
+		ImageButton composeButton = (ImageButton) findViewById(R.id.main_compose_button);
+		composeButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				redirectToComposePage(true, null);
+			}
+		});
+		
+		// Init recipient thread list view
+		recipientThreadListView = (ListView) findViewById(R.id.main_recipient_listview);
+		recipientThreadAdapter = new RecipientThreadAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, DatabaseUtil.getRecipientThreadDatabase(getApplicationContext()));
+		recipientThreadListView.setAdapter(recipientThreadAdapter);
+		recipientThreadListView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Recipient recipient = recipientThreadAdapter.getItemList().get(position).getRecipient();
+				redirectToComposePage(false, recipient);
+			}
+		});
+	}
+	
+	public void redirectToComposePage(boolean newMessage, Recipient recipient){
+		Intent intent = new Intent(this, ComposeMessageActivity.class);
+		intent.putExtra(IntentKey.NewMessage, newMessage);
+		intent.putExtra(IntentKey.Recipient, recipient);
+		startActivity(intent);
+	}
+	
+	public class GetContactThread extends Thread {
+	
+		public GetContactThread(){}
+		
 		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container,
-					false);
-			return rootView;
+		public void run() {
+			Calendar cal = Calendar.getInstance();
+			Date versionDate = cal.getTime();
+			ArrayList<Contact> contactList = ContactUtil.getAllContacts(getApplicationContext());
+			DatabaseUtil.updateContactRecordDatabase(getApplicationContext(), contactList, versionDate);
 		}
 	}
 

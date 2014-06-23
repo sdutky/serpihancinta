@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="ContentDescription">
+        <ignore path="res/layout/compose_message.xml" />
+    </issue>
+    <issue id="DefaultLocale">
+        <ignore path="src/edu/itb/twofishsms/adapter/ContactAdapter.java" />
+    </issue>
+    <issue id="NewApi" severity="ignore" />
+    <issue id="UselessParent">
+        <ignore path="res/layout/compose_message.xml" />
+    </issue>
+    <issue id="ValidFragment" severity="ignore" />
+</lint>
