@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.util.Log;
 import edu.itb.twofishsms.TwoFishSMSApp;
 import edu.itb.twofishsms.comparator.MessageComparator;
+import edu.itb.twofishsms.comparator.RecipientThreadComparator;
 import edu.itb.twofishsms.model.RecipientThread;
 import edu.itb.twofishsms.provider.Contact;
 import edu.itb.twofishsms.provider.Message;
@@ -133,6 +134,13 @@ public class DatabaseUtil {
 		return messageList;
 	}
 	
+	public static void deleteMessageRecordDatabase(Context context, Message message){
+		// Delete message in table message
+		context.getContentResolver().delete(Message.CONTENT_URI, 
+				Message.Columns._ID + "=?", 
+				new String [] { Integer.toString(message.getId()) });
+	}
+	
 	/****************************************************************************
 	 * 	RECIPIENT THREAD DATABASE OPERATION
 	 ****************************************************************************/
@@ -142,7 +150,6 @@ public class DatabaseUtil {
 		// Get all record from recipient table on database
 		Cursor c = context.getContentResolver().query(Recipient.CONTENT_URI, null, 
 				null, null, null);
-		Log.d(TwoFishSMSApp.TAG, "Recipient thread count = " + c.getCount());
 		if (c.moveToFirst()) {
 	        do {
 				ArrayList<Message> messageList = new ArrayList<Message>();
@@ -176,6 +183,21 @@ public class DatabaseUtil {
 	    }
 	    if (c != null && !c.isClosed()) { c.close(); }
 	    
+	    // Sort recipient thread list by last message modified date
+	    Collections.sort(recipientThreadList, new RecipientThreadComparator());
+	    
 		return recipientThreadList;
+	}
+	
+	public static void deleteRecipientThreadDatabase(Context context, RecipientThread recipientThread){
+		// Delete message in table message which is related with this recipient
+		context.getContentResolver().delete(Message.CONTENT_URI, 
+				Message.Columns.MOBILENUMBER + "=?", 
+				new String [] { recipientThread.getRecipient().getMobileNumber() });
+		
+		// Delete recipient in recipient table
+		context.getContentResolver().delete(Recipient.CONTENT_URI, 
+				Recipient.Columns.MOBILENUMBER + "=?", 
+				new String [] { recipientThread.getRecipient().getMobileNumber() });
 	}
 }

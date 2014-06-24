@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -52,8 +53,8 @@ public class ComposeMessageActivity extends Activity {
 	private LinearLayout composeRecipientLayout;
 	private LinearLayout recipientSelectedlayout;
 	
-	private ArrayList<Contact> recipientSelectedList = new ArrayList<Contact>();
-	
+	private ArrayList<Recipient> recipientSelectedList = new ArrayList<Recipient>();
+	private int counterSMSReceived = 0;
 	private BroadcastReceiver receiver;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,25 +83,19 @@ public class ComposeMessageActivity extends Activity {
 		receiver = new BroadcastReceiver() {
 	        @Override
 	        public void onReceive(Context context, Intent intent) {
-	            String message = null;
 	            int status = Message.FAILED;
 	            switch (getResultCode()) {
 		            case Activity.RESULT_OK:
-		                message = "Message sent!";
-		                status = Message.SUCCESS;
+					status = Message.SUCCESS;
 		                break;
 		            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-		                message = "Error.";
-		                break;
+					break;
 		            case SmsManager.RESULT_ERROR_NO_SERVICE:
-		                message = "Error: No service.";
-		                break;
+					break;
 		            case SmsManager.RESULT_ERROR_NULL_PDU:
-		                message = "Error: Null PDU.";
-		                break;
+					break;
 		            case SmsManager.RESULT_ERROR_RADIO_OFF:
-		                message = "Error: Radio off.";
-		                break;
+					break;
             	}
 	            Message msg = intent.getParcelableExtra(IntentKey.Message);
 	            if(msg != null){
@@ -112,6 +107,17 @@ public class ComposeMessageActivity extends Activity {
 	            	messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), msg.getMobileNumber()));
 	    			messageAdapter.notifyDataSetChanged();
 	            }
+	            
+	            // Handle finish activity action for multiple sending message
+	            if(recipientSelectedList.size() > 1){
+	            	counterSMSReceived++;
+		            if(counterSMSReceived == recipientSelectedList.size()){
+		            	Log.d(TwoFishSMSApp.TAG, "Multiple sending message");
+		            	ComposeMessageActivity.this.setResult(RESULT_OK);
+		            	finish();
+		            }
+	            }
+	            
             }
         };
 		registerReceiver(receiver, new IntentFilter(key));
@@ -128,6 +134,17 @@ public class ComposeMessageActivity extends Activity {
 		messageListView = (ListView) findViewById(R.id.compose_message_listview);
 		messageAdapter = new MessageAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, new ArrayList<Message>());
 		messageListView.setAdapter(messageAdapter);
+		messageListView.setOnItemLongClickListener(new OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent,
+					View view, int position, long id) {
+				// Show message dialog
+				Message message = messageAdapter.getItemList().get(position);
+				showMessageDialog(message);
+				
+				return false;
+			}
+		});
 		
 		// Init recipient edit text
 		recipientEditText = (EditText) findViewById(R.id.compose_recipient_edittext);
@@ -164,22 +181,23 @@ public class ComposeMessageActivity extends Activity {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				Contact contact = contactAdapter.getItemList().get(position);
-				if(!isExistRecipient(contact)){
-					recipientSelectedList.add(contact);
+				Recipient recipient = new Recipient(contact.getName(), contact.getMobileNumber());
+				if(!isExistRecipient(recipient)){
+					recipientSelectedList.add(recipient);
 					
 					// Add button to selected recipient layout
 					Button recipientButton = new Button(ComposeMessageActivity.this);
 					LayoutParams recipientButtonParam = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-					recipientButton.setText(contact.getName());
+					recipientButton.setText(recipient.getName());
 					recipientButton.setTextSize(12.0f);
 					recipientButton.setLayoutParams(recipientButtonParam);
-					recipientButton.setTag(contact);
+					recipientButton.setTag(recipient);
 					recipientButton.setOnClickListener(new OnClickListener() {	
 						@Override
 						public void onClick(View v) {
-							Contact contact = (Contact) v.getTag();
-							if(contact != null){
-								showDialog(contact);
+							Recipient recipient = (Recipient) v.getTag();
+							if(recipient != null){
+								showSelectedRecipientDialog(recipient);
 							}
 						}
 					});
@@ -268,8 +286,7 @@ public class ComposeMessageActivity extends Activity {
 			
 			Recipient recipient = getIntent().getExtras().getParcelable(IntentKey.Recipient);
 			if(recipient != null){
-				Contact contact = new Contact(recipient.getName(), recipient.getMobileNumber());
-				recipientSelectedList.add(contact);
+				recipientSelectedList.add(recipient);
 				
 				// Set title text
 				setTitle(recipient.getName(), recipient.getMobileNumber());
@@ -283,22 +300,24 @@ public class ComposeMessageActivity extends Activity {
 	}
 	
 	private void sendSMS(String message){
+		counterSMSReceived = 0;
+		
 		if(recipientSelectedList.size() == 0){
 			String number = recipientEditText.getText().toString();
 			
 			 if(number.matches("\\d+")){
 				 Log.d(TwoFishSMSApp.TAG, "number valid");
-				 Contact contact = new Contact("", number);
-				 recipientSelectedList.add(contact);
+				 Recipient recipient = new Recipient("", number);
+				 recipientSelectedList.add(recipient);
 			 }else{
 				 Log.d(TwoFishSMSApp.TAG, "number invalid");
 			 }
 		}
 		
 		for(int i = 0; i < recipientSelectedList.size(); ++i){
-			Contact contact = recipientSelectedList.get(i);
+			Recipient recipient = recipientSelectedList.get(i);
 			// Insert message to database
-			Message msg = new Message(message, contact.getName(), contact.getMobileNumber(), Message.PENDING);
+			Message msg = new Message(message, recipient.getName(), recipient.getMobileNumber(), Message.PENDING);
 			DatabaseUtil.insertMessageToDatabase(getApplicationContext(), msg);
 			
 			// Init sms receiver
@@ -311,28 +330,41 @@ public class ComposeMessageActivity extends Activity {
 		}
 		
 		if(recipientSelectedList.size() == 1){
-			Contact contact = recipientSelectedList.get(0);
+			Recipient recipient = recipientSelectedList.get(0);
 			// Update message list
-			messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), contact.getMobileNumber()));
+			messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), recipient.getMobileNumber()));
 			messageAdapter.notifyDataSetChanged();
 			messageListView.setSelection(messageAdapter.getCount() - 1);
 			
 			composeRecipientLayout.setVisibility(View.GONE);
-			setTitle(contact.getName(), contact.getMobileNumber());
+			setTitle(recipient.getName(), recipient.getMobileNumber());
 			
 		}
 	}
 	
-	final CharSequence[] dialogItems = {"Remove", "View Contact"};
+	private void resendMessage(Message message){
+		for(int i = 0; i < recipientSelectedList.size(); ++i){
+			// Init sms receiver
+			initSMSReceiver(Integer.toString(message.getId()));	
+			
+			SmsManager sms = SmsManager.getDefault();
+			sms.sendTextMessage(message.getMobileNumber(), null, message.getMessage(), PendingIntent.getBroadcast(
+                    this, 0, new Intent(Integer.toString(message.getId())).putExtra(IntentKey.Message, message), 0), null);
+	       
+		}
+		
+	}
 	
-	private void showDialog(final Contact contact){
+	final CharSequence[] dialogSelectedRecipientItems = {"Remove", "View Contact"};
+	
+	private void showSelectedRecipientDialog(final Recipient recipient){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(contact.getName() + " (" + contact.getMobileNumber() + ")" );
-        builder.setItems(dialogItems, new DialogInterface.OnClickListener() {
+        builder.setTitle(recipient.getName() + " (" + recipient.getMobileNumber() + ")" );
+        builder.setItems(dialogSelectedRecipientItems, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 if(item == 0){
                 	// Remove selected recipient
-                	removeSelectedRecipient(contact);
+                	removeSelectedRecipient(recipient);
                 }
             }
         });
@@ -340,13 +372,13 @@ public class ComposeMessageActivity extends Activity {
         alert.show();
 	}
 	
-	private void removeSelectedRecipient(Contact contact){
+	private void removeSelectedRecipient(Recipient recipient){
 		Log.d(TwoFishSMSApp.TAG, "Remove selected recipient");
 		int position = -1;
 		int i = 0;
 		while(i < recipientSelectedList.size() && position == -1){
-			Contact recipient = recipientSelectedList.get(i);
-			if(recipient.getMobileNumber().equalsIgnoreCase(contact.getMobileNumber())){
+			Recipient recipientSelected = recipientSelectedList.get(i);
+			if(recipientSelected.getMobileNumber().equalsIgnoreCase(recipient.getMobileNumber())){
 				position = i;
 			}
 			++i;
@@ -359,12 +391,52 @@ public class ComposeMessageActivity extends Activity {
 		}
 	}
 	
-	private boolean isExistRecipient(Contact contact){
+	private void showMessageDialog(final Message message){
+		CharSequence[] dialogMessageItems = new CharSequence[4];
+		if(message.getStatus() == Message.FAILED){
+			dialogMessageItems[0] = "Delete message"; dialogMessageItems[1] = "Encrypt";
+			dialogMessageItems[2] = "Decrypt"; dialogMessageItems[3] = "Resend message";
+		}else{
+			dialogMessageItems[0] = "Delete message"; dialogMessageItems[1] = "Encrypt";
+			dialogMessageItems[2] = "Decrypt"; 
+		}
+			
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Message options");
+        builder.setItems(dialogMessageItems, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                if(item == 0){
+                	// Delete message
+                	deleteMessage(message);
+                }else if(item == 1){
+                	// Encrypt message
+                }else if(item == 2){
+                	// Decrypt message
+                }else if(item == 3){
+                	// Resend message
+                	resendMessage(message);
+                }
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+	}
+	
+	private void deleteMessage(Message message){
+		// Delete message in database
+		DatabaseUtil.deleteMessageRecordDatabase(getApplicationContext(), message);
+		
+		// Update message data in listview
+		messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), message.getMobileNumber()));
+		messageAdapter.notifyDataSetChanged();
+	}
+	
+	private boolean isExistRecipient(Recipient recipient){
 		boolean found = false;
 		int i = 0;
 		while(i < recipientSelectedList.size() && !found){
-			Contact recipient = recipientSelectedList.get(i);
-			if(recipient.getMobileNumber().equalsIgnoreCase(contact.getMobileNumber())){
+			Recipient recipientSelected = recipientSelectedList.get(i);
+			if(recipientSelected.getMobileNumber().equalsIgnoreCase(recipient.getMobileNumber())){
 				found = true;
 			}
 			++i;

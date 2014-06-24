@@ -3,8 +3,11 @@ package edu.itb.twofishsms;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,10 +16,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 import edu.itb.twofishsms.adapter.RecipientThreadAdapter;
 import edu.itb.twofishsms.constant.IntentKey;
+import edu.itb.twofishsms.model.RecipientThread;
 import edu.itb.twofishsms.provider.Contact;
 import edu.itb.twofishsms.provider.Recipient;
 import edu.itb.twofishsms.util.ContactUtil;
@@ -48,6 +54,18 @@ public class MainActivity extends Activity {
 		recipientThreadAdapter.setItemList(DatabaseUtil.getRecipientThreadDatabase(getApplicationContext()));
 		recipientThreadAdapter.notifyDataSetChanged();
 	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if(resultCode == Activity.RESULT_OK) {
+	    	if(requestCode == IntentKey.ComposeMessageRequest){
+	    		// Show multiple sending toast
+	    		Toast.makeText(getApplicationContext(), "Multiple sending message", Toast.LENGTH_SHORT).show();
+	    	}
+	        
+	    }
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -62,10 +80,10 @@ public class MainActivity extends Activity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
+		/*int id = item.getItemId();
 		if (id == R.id.action_settings) {
 			return true;
-		}
+		}*/
 		return super.onOptionsItemSelected(item);
 	}
 	
@@ -91,13 +109,49 @@ public class MainActivity extends Activity {
 				redirectToComposePage(false, recipient);
 			}
 		});
+		recipientThreadListView.setOnItemLongClickListener(new OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				RecipientThread recipientThread = recipientThreadAdapter.getItemList().get(position);
+				showThreadDialog(recipientThread);
+				return false;
+			}
+		});
+	}
+	
+	final CharSequence[] dialogThreadItems = {"Delete threads"};
+	
+	public void showThreadDialog(final RecipientThread recipientThread){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(recipientThread.getRecipient().getName());
+        builder.setItems(dialogThreadItems, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                if(item == 0){
+                	// Delete threads
+                	deleteThread(recipientThread);
+                }
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+	}
+	
+	public void deleteThread(RecipientThread recipientThread){
+		// Delete recipient thread in database
+		DatabaseUtil.deleteRecipientThreadDatabase(getApplicationContext(), recipientThread);
+		
+		// Update recipient thread data in listview
+		List<RecipientThread> recipientThreadList = DatabaseUtil.getRecipientThreadDatabase(getApplicationContext());
+		recipientThreadAdapter.setItemList(recipientThreadList);
+		recipientThreadAdapter.notifyDataSetChanged();
 	}
 	
 	public void redirectToComposePage(boolean newMessage, Recipient recipient){
 		Intent intent = new Intent(this, ComposeMessageActivity.class);
 		intent.putExtra(IntentKey.NewMessage, newMessage);
 		intent.putExtra(IntentKey.Recipient, recipient);
-		startActivity(intent);
+		startActivityForResult(intent, IntentKey.ComposeMessageRequest);
 	}
 	
 	public class GetContactThread extends Thread {

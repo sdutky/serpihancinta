@@ -38,7 +38,6 @@ public final class R {
         public static final int rounded_corner=0x7f020006;
     }
     public static final class id {
-        public static final int action_settings=0x7f090018;
         public static final int compose_contact_listview=0x7f090010;
         public static final int compose_encrypt_button=0x7f09000e;
         public static final int compose_key_edittext=0x7f09000c;

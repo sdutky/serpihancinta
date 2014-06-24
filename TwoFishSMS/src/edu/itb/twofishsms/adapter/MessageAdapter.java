@@ -4,7 +4,6 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import edu.itb.twofishsms.R;
-import edu.itb.twofishsms.TwoFishSMSApp;
 import edu.itb.twofishsms.provider.Message;
 import edu.itb.twofishsms.util.ViewUtil;
 
