@@ -31,7 +31,7 @@ import edu.itb.twofishsms.util.DatabaseUtil;
 public class MainActivity extends Activity {
 	
 	private ListView recipientThreadListView;
-	private RecipientThreadAdapter recipientThreadAdapter;
+	private static RecipientThreadAdapter recipientThreadAdapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +50,18 @@ public class MainActivity extends Activity {
 	public void onResume(){
 		super.onResume();
 		
+		// Set visiblilty of recipient thread page
+		TwoFishSMSApp.setRecipientThreadPageVisible(true);
+		
 		// Update recipient thread list
-		recipientThreadAdapter.setItemList(DatabaseUtil.getRecipientThreadDatabase(getApplicationContext()));
-		recipientThreadAdapter.notifyDataSetChanged();
+		updateRecipientThreadListView();
+	}
+	
+	public void onPause(){
+		super.onPause();
+		
+		// Set visiblilty of recipient thread page
+		TwoFishSMSApp.setRecipientThreadPageVisible(false);
 	}
 	
 	@Override
@@ -142,9 +151,7 @@ public class MainActivity extends Activity {
 		DatabaseUtil.deleteRecipientThreadDatabase(getApplicationContext(), recipientThread);
 		
 		// Update recipient thread data in listview
-		List<RecipientThread> recipientThreadList = DatabaseUtil.getRecipientThreadDatabase(getApplicationContext());
-		recipientThreadAdapter.setItemList(recipientThreadList);
-		recipientThreadAdapter.notifyDataSetChanged();
+		updateRecipientThreadListView();
 	}
 	
 	public void redirectToComposePage(boolean newMessage, Recipient recipient){
@@ -152,6 +159,11 @@ public class MainActivity extends Activity {
 		intent.putExtra(IntentKey.NewMessage, newMessage);
 		intent.putExtra(IntentKey.Recipient, recipient);
 		startActivityForResult(intent, IntentKey.ComposeMessageRequest);
+	}
+	
+	public static void updateRecipientThreadListView(){
+		recipientThreadAdapter.setItemList(DatabaseUtil.getRecipientThreadDatabase(TwoFishSMSApp.getContext()));
+		recipientThreadAdapter.notifyDataSetChanged();
 	}
 	
 	public class GetContactThread extends Thread {

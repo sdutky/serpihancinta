@@ -9,11 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import edu.itb.twofishsms.R;
 import edu.itb.twofishsms.provider.Message;
-import edu.itb.twofishsms.util.ViewUtil;
 
 public class MessageAdapter extends ArrayAdapter<Message> {
 	private LayoutInflater inflater;
@@ -35,40 +33,49 @@ public class MessageAdapter extends ArrayAdapter<Message> {
 	
 		Message item = itemList.get(position);
 		
-		RelativeLayout messageLayout = (RelativeLayout) convertView
-				.findViewById(R.id.message_item_layout);
+		RelativeLayout messageOutgoingLayout = (RelativeLayout) convertView
+				.findViewById(R.id.message_item_outgoing_layout);
+		
+		RelativeLayout messageIncomingLayout = (RelativeLayout) convertView
+				.findViewById(R.id.message_item_incoming_layout);
+		
 		if(item.getSent() == Message.OUTGOING){
-			LayoutParams messageLayoutParam = (LayoutParams) messageLayout.getLayoutParams();
-			messageLayoutParam.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-			messageLayoutParam.leftMargin = (int) ViewUtil.convertDpToPixel(80.f, getContext());
-			messageLayoutParam.rightMargin = (int) ViewUtil.convertDpToPixel(20.f, getContext());
-			messageLayout.setBackground(getContext().getResources().getDrawable(R.drawable.blue_rounded_corner));
-			messageLayout.setLayoutParams(messageLayoutParam);
+			messageOutgoingLayout.setVisibility(View.VISIBLE);
+			messageIncomingLayout.setVisibility(View.GONE);
 		}else if(item.getSent() == Message.INCOMING){
-			LayoutParams messageLayoutParam = (LayoutParams) messageLayout.getLayoutParams();
-			messageLayoutParam.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-			messageLayoutParam.leftMargin = (int) ViewUtil.convertDpToPixel(20.f, getContext());
-			messageLayoutParam.rightMargin = (int) ViewUtil.convertDpToPixel(80.f, getContext());
-			messageLayout.setBackground(getContext().getResources().getDrawable(R.drawable.red_rounded_corner));
-			messageLayout.setLayoutParams(messageLayoutParam);
+			messageOutgoingLayout.setVisibility(View.GONE);
+			messageIncomingLayout.setVisibility(View.VISIBLE);
 		}
 		
-		TextView tvMessage = (TextView) convertView
-				.findViewById(R.id.message_item_message);
-		tvMessage.setText(item.getMessage());
+		TextView tvOutgoingMessage = (TextView) convertView
+				.findViewById(R.id.message_item_outgoing_message);
+		tvOutgoingMessage.setText(item.getMessage());
 		
-		TextView tvStatus = (TextView) convertView
-				.findViewById(R.id.message_item_status);
+		TextView tvOutgoingStatus = (TextView) convertView
+				.findViewById(R.id.message_item_outgoing_status);
+		
+		TextView tvIncomingMessage = (TextView) convertView
+				.findViewById(R.id.message_item_incoming_message);
+		tvIncomingMessage.setText(item.getMessage());
+		
+		TextView tvIncomingStatus = (TextView) convertView
+				.findViewById(R.id.message_item_incoming_status);
 		
 		if(item.getStatus() == Message.FAILED){
-			tvStatus.setTextColor(Color.parseColor("#ff0000"));
-			tvStatus.setText("Failed");
+			tvOutgoingStatus.setTextColor(Color.parseColor("#ff0000"));
+			tvOutgoingStatus.setText("Failed");
+			
+			tvIncomingStatus.setTextColor(Color.parseColor("#ff0000"));
+			tvIncomingStatus.setText("Failed");
 		}else{
-			tvStatus.setTextColor(Color.parseColor("#000000"));
+			tvOutgoingStatus.setTextColor(Color.parseColor("#000000"));
+			tvIncomingStatus.setTextColor(Color.parseColor("#000000"));
 			if(item.getStatus() == Message.SUCCESS){
-				tvStatus.setText(item.getModified());
+				tvOutgoingStatus.setText(item.getModified());
+				tvIncomingStatus.setText(item.getModified());
 			}else if(item.getStatus() == Message.PENDING){
-				tvStatus.setText("Pending");
+				tvOutgoingStatus.setText("Pending");
+				tvIncomingStatus.setText("Pending");
 			}
 		}
 		

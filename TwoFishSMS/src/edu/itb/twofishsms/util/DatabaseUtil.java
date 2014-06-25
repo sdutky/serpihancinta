@@ -73,24 +73,33 @@ public class DatabaseUtil {
 	 * 	MESSAGE DATABASE OPERATION
 	 ****************************************************************************/
 	public static void insertMessageToDatabase(Context context, Message message){
-		// Insert data to recipient table if mobile number is not exist yet
-		Uri recipientURL = Recipient.CONTENT_URI;
-
+		
+		// Get all record from recipient table on database
+		Cursor c = context.getContentResolver().query(Recipient.CONTENT_URI, null, 
+				null, null, null);
+		
 		Recipient recipient = new Recipient(message.getName(), message.getMobileNumber());
-		Cursor c = context.getContentResolver().query(recipientURL, null, 
-				Recipient.Columns.MOBILENUMBER + "=?", 
-				new String [] { recipient.getMobileNumber() }, 
-				null);
+		if (c.moveToFirst()) {
+	        boolean found = false;
+			do {
+	            Recipient dbRecipient = new Recipient(c);
+	            if(TwoFishSMSApp.isSameNumber(dbRecipient.getMobileNumber(), message.getMobileNumber())){
+	            	// Update message data
+	            	message.setName(dbRecipient.getName());
+	            	message.setMobileNumber(dbRecipient.getMobileNumber());
+	            	found = true;
+	            }
+	        } while (c.moveToNext() && !found);
+			
+			if(!found){
+				recipient.addRecord(context);
+			}
+	    }
+	    if (c != null && !c.isClosed()) { c.close(); }
 		
-		if(c.moveToFirst()){
-			// Do nothing
-		} else {
-			recipient.addRecord(context);
-		}
-		if (c != null && !c.isClosed()) { c.close(); }
+	    // Insert message to database
+ 		message.addRecord(context);
 		
-		// Insert message to database
-		message.addRecord(context);
 	}
 	
 	public static void updateMessageStatusToDatabase(Context context, Message message, int status){

@@ -5,7 +5,7 @@
     android:background="@android:color/white">
 
     <RelativeLayout 
-        android:id="@+id/message_item_layout"
+        android:id="@+id/message_item_outgoing_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -14,10 +14,11 @@
         android:layout_marginTop="10dp"
         android:padding="10dp"
         android:layout_marginBottom="10dp"
+        android:visibility="gone"
         android:background="@drawable/blue_rounded_corner">
         
         <TextView 
-            android:id="@+id/message_item_message"
+            android:id="@+id/message_item_outgoing_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
@@ -25,11 +26,44 @@
             android:background="@android:color/transparent"/>
         
         <TextView
-            android:id="@+id/message_item_status"
+            android:id="@+id/message_item_outgoing_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:layout_below="@+id/message_item_message"
+            android:layout_below="@+id/message_item_outgoing_message"
+            android:textSize="10sp"
+            android:textColor="@android:color/black"
+            android:background="@android:color/transparent"/>
+        
+    </RelativeLayout>
+    
+    <RelativeLayout 
+        android:id="@+id/message_item_incoming_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="80dp"
+        android:layout_marginTop="10dp"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone"
+        android:background="@drawable/red_rounded_corner">
+        
+        <TextView 
+            android:id="@+id/message_item_incoming_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:background="@android:color/transparent"/>
+        
+        <TextView
+            android:id="@+id/message_item_incoming_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/message_item_incoming_message"
             android:textSize="10sp"
             android:textColor="@android:color/black"
             android:background="@android:color/transparent"/>

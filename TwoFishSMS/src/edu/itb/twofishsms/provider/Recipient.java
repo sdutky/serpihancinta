@@ -153,6 +153,13 @@ public class Recipient extends DbTable {
 		return this.mobileNumber;
 	}
 	
+	public void setName(String _name){
+		this.name = _name;
+	}
+	
+	public void setMobileNumber(String _mobileNumber){
+		this.mobileNumber = _mobileNumber;
+	}
 	/**
 	*  Parcelable related
 	**/ 

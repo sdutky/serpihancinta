@@ -44,11 +44,11 @@ public class Message extends DbTable{
 	
 	public Message(){}
 	
-	public Message(String _message, String _name, String _mobileNumber, int _status){
+	public Message(String _message, String _name, String _mobileNumber, int _status, int _sent){
 		this._id = new Random().nextInt(Integer.MAX_VALUE) + 1;
 		Log.d(TwoFishSMSApp.TAG, "random : " + this._id);
 		this.message = _message;
-		this.sent = OUTGOING;
+		this.sent = _sent;
 		this.name = _name;
 		this.mobileNumber = _mobileNumber;
 		this.status = _status;
@@ -214,6 +214,14 @@ public class Message extends DbTable{
 	
 	public void setStatus(int _status){
 		this.status = _status;
+	}
+	
+	public void setName(String _name){
+		this.name = _name;
+	}
+	
+	public void setMobileNumber(String _mobileNumber){
+		this.mobileNumber = _mobileNumber;
 	}
 	
 	/**

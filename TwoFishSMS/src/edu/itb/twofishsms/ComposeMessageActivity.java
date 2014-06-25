@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -48,10 +49,11 @@ public class ComposeMessageActivity extends Activity {
 	
 	private TextView titleTextView;
 	private ListView messageListView;
-	private MessageAdapter messageAdapter;
+	private static MessageAdapter messageAdapter;
 	private LinearLayout composeMessageLayout;
 	private LinearLayout composeRecipientLayout;
 	private LinearLayout recipientSelectedlayout;
+	private static Recipient recipient;
 	
 	private ArrayList<Recipient> recipientSelectedList = new ArrayList<Recipient>();
 	private int counterSMSReceived = 0;
@@ -69,6 +71,23 @@ public class ComposeMessageActivity extends Activity {
 		super.onDestroy();
 		if(receiver != null)
 			unregisterReceiver(receiver);
+	}
+	
+	public void onResume(){
+		super.onResume();
+		
+		// Set visiblilty of message page
+		TwoFishSMSApp.setMessagePageVisible(true);
+		
+		// Update message list view
+		updateMessageListView();
+	}
+	
+	public void onPause(){
+		super.onPause();
+		
+		// Set visiblilty of message page
+		TwoFishSMSApp.setMessagePageVisible(false);
 	}
 	
 	public void onBackPressed(){
@@ -104,8 +123,7 @@ public class ComposeMessageActivity extends Activity {
 	            	DatabaseUtil.updateMessageStatusToDatabase(getApplicationContext(), msg, status);
 	            	
 	            	// Update message list view
-	            	messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), msg.getMobileNumber()));
-	    			messageAdapter.notifyDataSetChanged();
+	            	updateMessageListView(msg.getMobileNumber());
 	            }
 	            
 	            // Handle finish activity action for multiple sending message
@@ -284,7 +302,7 @@ public class ComposeMessageActivity extends Activity {
 		}else{
 			composeRecipientLayout.setVisibility(View.GONE);
 			
-			Recipient recipient = getIntent().getExtras().getParcelable(IntentKey.Recipient);
+			recipient = getIntent().getExtras().getParcelable(IntentKey.Recipient);
 			if(recipient != null){
 				recipientSelectedList.add(recipient);
 				
@@ -292,14 +310,14 @@ public class ComposeMessageActivity extends Activity {
 				setTitle(recipient.getName(), recipient.getMobileNumber());
 				
 				// Update message
-				messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), recipient.getMobileNumber()));
-				messageAdapter.notifyDataSetChanged();
+				updateMessageListView(recipient.getMobileNumber());
 				messageListView.setSelection(messageAdapter.getCount() - 1);
 			}
 		}
 	}
 	
 	private void sendSMS(String message){
+		messageEditText.setText("");
 		counterSMSReceived = 0;
 		
 		if(recipientSelectedList.size() == 0){
@@ -310,14 +328,14 @@ public class ComposeMessageActivity extends Activity {
 				 Recipient recipient = new Recipient("", number);
 				 recipientSelectedList.add(recipient);
 			 }else{
-				 Log.d(TwoFishSMSApp.TAG, "number invalid");
+				 Toast.makeText(getApplicationContext(), "Number invalid", Toast.LENGTH_SHORT).show();
 			 }
 		}
 		
 		for(int i = 0; i < recipientSelectedList.size(); ++i){
 			Recipient recipient = recipientSelectedList.get(i);
 			// Insert message to database
-			Message msg = new Message(message, recipient.getName(), recipient.getMobileNumber(), Message.PENDING);
+			Message msg = new Message(message, recipient.getName(), recipient.getMobileNumber(), Message.PENDING, Message.OUTGOING);
 			DatabaseUtil.insertMessageToDatabase(getApplicationContext(), msg);
 			
 			// Init sms receiver
@@ -332,8 +350,7 @@ public class ComposeMessageActivity extends Activity {
 		if(recipientSelectedList.size() == 1){
 			Recipient recipient = recipientSelectedList.get(0);
 			// Update message list
-			messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), recipient.getMobileNumber()));
-			messageAdapter.notifyDataSetChanged();
+			updateMessageListView(recipient.getMobileNumber());
 			messageListView.setSelection(messageAdapter.getCount() - 1);
 			
 			composeRecipientLayout.setVisibility(View.GONE);
@@ -392,15 +409,8 @@ public class ComposeMessageActivity extends Activity {
 	}
 	
 	private void showMessageDialog(final Message message){
-		CharSequence[] dialogMessageItems = new CharSequence[4];
-		if(message.getStatus() == Message.FAILED){
-			dialogMessageItems[0] = "Delete message"; dialogMessageItems[1] = "Encrypt";
-			dialogMessageItems[2] = "Decrypt"; dialogMessageItems[3] = "Resend message";
-		}else{
-			dialogMessageItems[0] = "Delete message"; dialogMessageItems[1] = "Encrypt";
-			dialogMessageItems[2] = "Decrypt"; 
-		}
-			
+		CharSequence[] dialogMessageItems = {"Delete message", "Encrypt", "Decrypt", "Resend message"};
+		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Message options");
         builder.setItems(dialogMessageItems, new DialogInterface.OnClickListener() {
@@ -427,8 +437,7 @@ public class ComposeMessageActivity extends Activity {
 		DatabaseUtil.deleteMessageRecordDatabase(getApplicationContext(), message);
 		
 		// Update message data in listview
-		messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(getApplicationContext(), message.getMobileNumber()));
-		messageAdapter.notifyDataSetChanged();
+		updateMessageListView(message.getMobileNumber());
 	}
 	
 	private boolean isExistRecipient(Recipient recipient){
@@ -451,5 +460,17 @@ public class ComposeMessageActivity extends Activity {
 		else
 			title = mobileNumber;
 		titleTextView.setText(title);
+	}
+	
+	public static void updateMessageListView(String mobileNumber){
+		messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(TwoFishSMSApp.getContext(), mobileNumber));
+		messageAdapter.notifyDataSetChanged();
+	}
+	
+	public static void updateMessageListView(){
+		if(recipient != null){
+			messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(TwoFishSMSApp.getContext(), recipient.getMobileNumber()));
+			messageAdapter.notifyDataSetChanged();
+		}
 	}
 }
