@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.BaseColumns;
-import edu.itb.twofishsms.provider.Recipient.Columns;
 
 public class Recipient extends DbTable {
 	public static final String TABLE_NAME = "Recipient";
@@ -32,6 +31,14 @@ public class Recipient extends DbTable {
 	public Recipient(String _name, String _mobileNumber){
 		this.name = _name;
 		this.mobileNumber = _mobileNumber;
+	}
+	
+	public Recipient(Recipient _recipient){
+		this._id = _recipient._id;
+		this.created = _recipient.created;
+		this.modified = _recipient.modified;
+		this.name = _recipient.name;
+		this.mobileNumber = _recipient.mobileNumber;
 	}
 	
 	public Recipient(Cursor c){

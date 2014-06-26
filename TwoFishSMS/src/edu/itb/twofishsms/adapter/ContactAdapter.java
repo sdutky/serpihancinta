@@ -21,6 +21,7 @@ public class ContactAdapter extends ArrayAdapter<Contact> {
     private List<Contact> allItemList;
    
     private Filter filter = new Filter() {		
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void publishResults(CharSequence constraint, FilterResults results) {
 			if(results != null){	

@@ -94,6 +94,8 @@ public class DatabaseUtil {
 			if(!found){
 				recipient.addRecord(context);
 			}
+	    }else{
+	    	recipient.addRecord(context);
 	    }
 	    if (c != null && !c.isClosed()) { c.close(); }
 		
@@ -159,6 +161,7 @@ public class DatabaseUtil {
 		// Get all record from recipient table on database
 		Cursor c = context.getContentResolver().query(Recipient.CONTENT_URI, null, 
 				null, null, null);
+		Log.d(TwoFishSMSApp.TAG, "Recipient table count = " + c.getCount());
 		if (c.moveToFirst()) {
 	        do {
 				ArrayList<Message> messageList = new ArrayList<Message>();

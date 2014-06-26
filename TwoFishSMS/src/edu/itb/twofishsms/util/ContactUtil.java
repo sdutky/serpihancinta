@@ -11,7 +11,7 @@ import edu.itb.twofishsms.provider.Contact;
 public class ContactUtil {
 	
 	public static ArrayList<Contact> getAllContacts(Context context){
-		ArrayList<Contact> result = new ArrayList<>();
+		ArrayList<Contact> result = new ArrayList<Contact>();
 		
 		ContentResolver cr = context.getContentResolver();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,

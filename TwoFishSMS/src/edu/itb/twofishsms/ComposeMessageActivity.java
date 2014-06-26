@@ -53,7 +53,9 @@ public class ComposeMessageActivity extends Activity {
 	private LinearLayout composeMessageLayout;
 	private LinearLayout composeRecipientLayout;
 	private LinearLayout recipientSelectedlayout;
-	private static Recipient recipient;
+	
+	private static Recipient recipient = null;
+	private static boolean newMessage;
 	
 	private ArrayList<Recipient> recipientSelectedList = new ArrayList<Recipient>();
 	private int counterSMSReceived = 0;
@@ -296,7 +298,7 @@ public class ComposeMessageActivity extends Activity {
 		titleTextView = (TextView) findViewById(R.id.compose_message_title);
 		
 		// Get intent extra from main activity
-		boolean newMessage = getIntent().getExtras().getBoolean(IntentKey.NewMessage, true);
+		newMessage = getIntent().getExtras().getBoolean(IntentKey.NewMessage, true);
 		if(newMessage){
 			composeRecipientLayout.setVisibility(View.VISIBLE);
 		}else{
@@ -310,7 +312,7 @@ public class ComposeMessageActivity extends Activity {
 				setTitle(recipient.getName(), recipient.getMobileNumber());
 				
 				// Update message
-				updateMessageListView(recipient.getMobileNumber());
+				updateMessageListView();
 				messageListView.setSelection(messageAdapter.getCount() - 1);
 			}
 		}
@@ -348,9 +350,12 @@ public class ComposeMessageActivity extends Activity {
 		}
 		
 		if(recipientSelectedList.size() == 1){
-			Recipient recipient = recipientSelectedList.get(0);
+			Recipient recipientSelected = recipientSelectedList.get(0);
+			newMessage = false;
+			recipient = new Recipient(recipientSelected);
+			
 			// Update message list
-			updateMessageListView(recipient.getMobileNumber());
+			updateMessageListView();
 			messageListView.setSelection(messageAdapter.getCount() - 1);
 			
 			composeRecipientLayout.setVisibility(View.GONE);
@@ -468,7 +473,7 @@ public class ComposeMessageActivity extends Activity {
 	}
 	
 	public static void updateMessageListView(){
-		if(recipient != null){
+		if(recipient != null && !newMessage){
 			messageAdapter.setItemList(DatabaseUtil.getMessageRecordDatabase(TwoFishSMSApp.getContext(), recipient.getMobileNumber()));
 			messageAdapter.notifyDataSetChanged();
 		}

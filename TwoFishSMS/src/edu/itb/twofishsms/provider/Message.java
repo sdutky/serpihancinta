@@ -15,7 +15,6 @@ import android.os.Parcelable;
 import android.provider.BaseColumns;
 import android.util.Log;
 import edu.itb.twofishsms.TwoFishSMSApp;
-import edu.itb.twofishsms.provider.Message.Columns;
 
 public class Message extends DbTable{
 	
