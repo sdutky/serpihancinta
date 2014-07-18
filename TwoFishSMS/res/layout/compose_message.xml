@@ -104,7 +104,7 @@
         <LinearLayout 
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.8"
+            android:layout_weight="0.75"
             android:padding="10dp"
             android:orientation="vertical">
             
@@ -140,7 +140,7 @@
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.2"
+            android:layout_weight="0.25"
             android:baselineAligned="false">
          
             <LinearLayout
@@ -149,21 +149,25 @@
                 android:layout_centerInParent="true"
                 android:orientation="vertical">
                 
-                <ImageButton 
+                <Button 
 			        android:id="@+id/compose_encrypt_button"
-			        android:layout_width="wrap_content"
+			        android:layout_width="80dp"
 			        android:layout_height="wrap_content"
+			        android:gravity="center"
 			        android:padding="10dp"
-			        android:src="@drawable/ic_action_secure"
+			        android:text="Encrypt"
+			        android:textColor="@android:color/white"
 			        android:background="@color/button_background"/>
                 
-                <ImageButton 
+                <Button 
 			        android:id="@+id/compose_send_button"
-			        android:layout_width="wrap_content"
+			        android:layout_width="80dp"
 			        android:layout_height="wrap_content"
 			        android:layout_marginTop="10dp"
+			        android:gravity="center"
 			        android:padding="10dp"
-			        android:src="@drawable/ic_action_send_now"
+			        android:text="Send"
+			        android:textColor="@android:color/white"
 			        android:background="@color/button_background"/>
                 
             </LinearLayout>

@@ -1,5 +1,7 @@
 package edu.itb.twofishsms;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -22,12 +24,11 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import edu.itb.twofishsms.adapter.ContactAdapter;
 import edu.itb.twofishsms.adapter.MessageAdapter;
 import edu.itb.twofishsms.constant.IntentKey;
@@ -35,11 +36,13 @@ import edu.itb.twofishsms.provider.Contact;
 import edu.itb.twofishsms.provider.Message;
 import edu.itb.twofishsms.provider.Recipient;
 import edu.itb.twofishsms.util.DatabaseUtil;
+import edu.itb.twofishsms.view.DialogKey;
+import edu.itb.twofishsms.view.DialogKey.OnDialogClickListener;
 
-public class ComposeMessageActivity extends Activity {
+public class ComposeMessageActivity extends Activity implements OnDialogClickListener {
 	
-	private ImageButton sendButton;
-	private ImageButton encryptButton;
+	private Button sendButton;
+	private Button encryptButton;
 	private EditText recipientEditText;
 	private EditText keyEditText;
 	private EditText messageEditText;
@@ -53,10 +56,11 @@ public class ComposeMessageActivity extends Activity {
 	private LinearLayout composeMessageLayout;
 	private LinearLayout composeRecipientLayout;
 	private LinearLayout recipientSelectedlayout;
+	private DialogKey dialogKey;
 	
 	private static Recipient recipient = null;
 	private static boolean newMessage;
-	
+		
 	private ArrayList<Recipient> recipientSelectedList = new ArrayList<Recipient>();
 	private int counterSMSReceived = 0;
 	private BroadcastReceiver receiver;
@@ -71,6 +75,7 @@ public class ComposeMessageActivity extends Activity {
 	
 	public void onDestroy(){
 		super.onDestroy();
+		dialogKey.dismiss();
 		if(receiver != null)
 			unregisterReceiver(receiver);
 	}
@@ -144,6 +149,9 @@ public class ComposeMessageActivity extends Activity {
 	}
 	
 	private void init(){
+		// Init dialog key
+		dialogKey = new DialogKey(this);
+		
 		// Init compose message layout
 		composeMessageLayout = (LinearLayout) findViewById(R.id.compose_message_layout);
 		
@@ -152,6 +160,7 @@ public class ComposeMessageActivity extends Activity {
 		
 		// Init message list view
 		messageListView = (ListView) findViewById(R.id.compose_message_listview);
+		
 		messageAdapter = new MessageAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, new ArrayList<Message>());
 		messageListView.setAdapter(messageAdapter);
 		messageListView.setOnItemLongClickListener(new OnItemLongClickListener() {
@@ -160,7 +169,7 @@ public class ComposeMessageActivity extends Activity {
 					View view, int position, long id) {
 				// Show message dialog
 				Message message = messageAdapter.getItemList().get(position);
-				showMessageDialog(message);
+				showMessageDialog(message, position);
 				
 				return false;
 			}
@@ -227,7 +236,7 @@ public class ComposeMessageActivity extends Activity {
 		});
 		
 		// Init send button
-		sendButton = (ImageButton) findViewById(R.id.compose_send_button);
+		sendButton = (Button) findViewById(R.id.compose_send_button);
 		sendButton.setEnabled(false);
 		sendButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -244,12 +253,24 @@ public class ComposeMessageActivity extends Activity {
 		});
 		
 		// Init encrypt button
-		encryptButton = (ImageButton) findViewById(R.id.compose_encrypt_button);
+		encryptButton = (Button) findViewById(R.id.compose_encrypt_button);
 		encryptButton.setEnabled(false);
 		encryptButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.d(TwoFishSMSApp.TAG, "encrypt click");
+				String cookieText = messageEditText.getText().toString();
+				String keyText = keyEditText.getText().toString();
+				try {
+					String cipherText = TwoFishSMSApp.encrypt(cookieText, keyText);
+					messageEditText.setText(cipherText);
+				} catch (InvalidKeyException e) {
+					// Show an error
+					Toast.makeText(getApplicationContext(), "Key invalid", Toast.LENGTH_SHORT).show();
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					Toast.makeText(getApplicationContext(), "Encoding error occured", Toast.LENGTH_SHORT).show();
+					e.printStackTrace();
+				}
 			}
 		});
 		
@@ -413,8 +434,8 @@ public class ComposeMessageActivity extends Activity {
 		}
 	}
 	
-	private void showMessageDialog(final Message message){
-		CharSequence[] dialogMessageItems = {"Delete message", "Encrypt", "Decrypt", "Resend message"};
+	private void showMessageDialog(final Message message, final int position){
+		CharSequence[] dialogMessageItems = {"Delete message", "Decrypt", "Resend message"};
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Message options");
@@ -424,10 +445,10 @@ public class ComposeMessageActivity extends Activity {
                 	// Delete message
                 	deleteMessage(message);
                 }else if(item == 1){
-                	// Encrypt message
+                	// Show key dialog
+                	dialogKey.setData(message, position);
+                	dialogKey.show();
                 }else if(item == 2){
-                	// Decrypt message
-                }else if(item == 3){
                 	// Resend message
                 	resendMessage(message);
                 }
@@ -478,4 +499,54 @@ public class ComposeMessageActivity extends Activity {
 			messageAdapter.notifyDataSetChanged();
 		}
 	}
+
+	// Interface OnDialogClick Listener
+	@Override
+	public void onYesClick(String key, Message message, int position) {
+		// Decrypt message
+    	try {
+			String plainText = TwoFishSMSApp.decrypt(message.getMessage(), key);
+			messageAdapter.getItemList().get(position).setMessage(plainText);;
+			messageAdapter.notifyDataSetChanged();
+			dialogKey.hide();
+		} catch (InvalidKeyException e) {
+			// Show an error
+			Toast.makeText(getApplicationContext(), "Key invalid", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			Toast.makeText(getApplicationContext(), "Encoding error occured", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onNoClick() {
+		dialogKey.hide();
+	}
+	
+	/* Test Case
+	 * String message1 = null;
+		String message2 = null;
+		String message3 = null;
+		try {
+			message1 = TwoFishSMSApp.encrypt("nur adi", "tes");
+			message2 = TwoFishSMSApp.encrypt("susliawan", "yudhis");
+			message3 = TwoFishSMSApp.encrypt("dwi caksono", "susliawan");
+		} catch (InvalidKeyException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		Message messageTest1 = new Message(message1, "tes", "0812", Message.SUCCESS, Message.INCOMING);
+		Message messageTest2 = new Message(message2, "tes", "0812", Message.SUCCESS, Message.INCOMING);
+		Message messageTest3 = new Message(message3, "tes", "0812", Message.SUCCESS, Message.INCOMING);
+		ArrayList<Message> messages = new ArrayList<Message>();
+		messages.add(messageTest1);
+		messages.add(messageTest2);
+		messages.add(messageTest3);
+	 * 
+	 * 
+	 */
 }

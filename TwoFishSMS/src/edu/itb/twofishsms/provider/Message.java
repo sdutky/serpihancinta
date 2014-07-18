@@ -223,6 +223,10 @@ public class Message extends DbTable{
 		this.mobileNumber = _mobileNumber;
 	}
 	
+	public void setMessage(String _message){
+		this.message = _message;
+	}
+	
 	/**
 	*  Parcelable related
 	**/ 

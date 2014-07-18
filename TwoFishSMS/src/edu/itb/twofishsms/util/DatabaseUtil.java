@@ -56,7 +56,7 @@ public class DatabaseUtil {
 		// Get all record from contact table on database
 		Cursor c = context.getContentResolver().query(Contact.CONTENT_URI, null, 
 				null, null, null);
-		Log.d(TwoFishSMSApp.TAG, "Contact count = " + c.getCount());
+		//Log.d(TwoFishSMSApp.TAG, "Contact count = " + c.getCount());
 		if (c.moveToFirst()) {
 	        do {
 	            Contact contact = new Contact(c);
@@ -161,7 +161,7 @@ public class DatabaseUtil {
 		// Get all record from recipient table on database
 		Cursor c = context.getContentResolver().query(Recipient.CONTENT_URI, null, 
 				null, null, null);
-		Log.d(TwoFishSMSApp.TAG, "Recipient table count = " + c.getCount());
+		//Log.d(TwoFishSMSApp.TAG, "Recipient table count = " + c.getCount());
 		if (c.moveToFirst()) {
 	        do {
 				ArrayList<Message> messageList = new ArrayList<Message>();
