@@ -135,6 +135,16 @@
 		         android:maxLength="160"
 		         android:textSize="14sp"/>
             
+            <edu.itb.twofishsms.view.HelveticaRegularTextView 
+		         android:id="@+id/compose_message_encrypt_time"
+		         android:layout_width="match_parent"
+		         android:layout_height="wrap_content"
+		         android:layout_marginTop="5dp"
+		         android:padding="5dp"
+		         android:textColor="@android:color/white"
+		         android:visibility="gone"
+		         android:textSize="14sp"/>
+            
         </LinearLayout>
         
         <RelativeLayout

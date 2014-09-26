@@ -40,6 +40,7 @@ public class Message extends DbTable{
 	private String name;
 	private String mobileNumber;
 	private int status;
+	private String time = "";
 	
 	public Message(){}
 	
@@ -211,6 +212,10 @@ public class Message extends DbTable{
 		return this.status;
 	}
 	
+	public String getTime(){
+		return this.time;
+	}
+	
 	public void setStatus(int _status){
 		this.status = _status;
 	}
@@ -225,6 +230,10 @@ public class Message extends DbTable{
 	
 	public void setMessage(String _message){
 		this.message = _message;
+	}
+	
+	public void setTime(String _time){
+		this.time = _time;
 	}
 	
 	/**

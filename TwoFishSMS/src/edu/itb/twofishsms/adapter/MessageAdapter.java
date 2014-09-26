@@ -39,12 +39,26 @@ public class MessageAdapter extends ArrayAdapter<Message> {
 		RelativeLayout messageIncomingLayout = (RelativeLayout) convertView
 				.findViewById(R.id.message_item_incoming_layout);
 		
+		TextView timeOutgoing = (TextView) convertView
+				.findViewById(R.id.message_item_outgoing_time);
+		
+		TextView timeIncoming = (TextView) convertView
+				.findViewById(R.id.message_item_incoming_time);
+		
 		if(item.getSent() == Message.OUTGOING){
 			messageOutgoingLayout.setVisibility(View.VISIBLE);
 			messageIncomingLayout.setVisibility(View.GONE);
+			if(!item.getTime().isEmpty()){
+				timeOutgoing.setVisibility(View.VISIBLE);
+				timeOutgoing.setText("Process time : " + item.getTime() + " ms");
+			}	
 		}else if(item.getSent() == Message.INCOMING){
 			messageOutgoingLayout.setVisibility(View.GONE);
 			messageIncomingLayout.setVisibility(View.VISIBLE);
+			if(!item.getTime().isEmpty()){
+				timeIncoming.setVisibility(View.VISIBLE);
+				timeIncoming.setText("Process time : " + item.getTime() + " ms");
+			}
 		}
 		
 		TextView tvOutgoingMessage = (TextView) convertView

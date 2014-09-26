@@ -51,6 +51,7 @@ public class ComposeMessageActivity extends Activity implements OnDialogClickLis
 	private ListView contactListView;
 	
 	private TextView titleTextView;
+	private TextView composeEncryptTimeTextView;
 	private ListView messageListView;
 	private static MessageAdapter messageAdapter;
 	private LinearLayout composeMessageLayout;
@@ -160,7 +161,6 @@ public class ComposeMessageActivity extends Activity implements OnDialogClickLis
 		
 		// Init message list view
 		messageListView = (ListView) findViewById(R.id.compose_message_listview);
-		
 		messageAdapter = new MessageAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, new ArrayList<Message>());
 		messageListView.setAdapter(messageAdapter);
 		messageListView.setOnItemLongClickListener(new OnItemLongClickListener() {
@@ -261,8 +261,14 @@ public class ComposeMessageActivity extends Activity implements OnDialogClickLis
 				String cookieText = messageEditText.getText().toString();
 				String keyText = keyEditText.getText().toString();
 				try {
+					long start = System.currentTimeMillis();
 					String cipherText = TwoFishSMSApp.encrypt(cookieText, keyText);
+					String timeString = Long.toString((System.currentTimeMillis() - start)); 
 					messageEditText.setText(cipherText);
+					if(!timeString.isEmpty()){
+						composeEncryptTimeTextView.setVisibility(View.VISIBLE);
+						composeEncryptTimeTextView.setText("Process time : " + timeString + " ms");
+					}
 				} catch (InvalidKeyException e) {
 					// Show an error
 					Toast.makeText(getApplicationContext(), "Key invalid", Toast.LENGTH_SHORT).show();
@@ -273,6 +279,9 @@ public class ComposeMessageActivity extends Activity implements OnDialogClickLis
 				}
 			}
 		});
+		
+		// Init compose message encrypt time
+		composeEncryptTimeTextView = (TextView) findViewById(R.id.compose_message_encrypt_time);
 		
 		// Init key edittext
 		keyEditText = (EditText) findViewById(R.id.compose_key_edittext);
@@ -505,8 +514,11 @@ public class ComposeMessageActivity extends Activity implements OnDialogClickLis
 	public void onYesClick(String key, Message message, int position) {
 		// Decrypt message
     	try {
+    		long start = System.currentTimeMillis();
 			String plainText = TwoFishSMSApp.decrypt(message.getMessage(), key);
-			messageAdapter.getItemList().get(position).setMessage(plainText);;
+			String timeString = Long.toString((System.currentTimeMillis() - start)); 
+			messageAdapter.getItemList().get(position).setMessage(plainText);
+			messageAdapter.getItemList().get(position).setTime(timeString);
 			messageAdapter.notifyDataSetChanged();
 			dialogKey.hide();
 		} catch (InvalidKeyException e) {
